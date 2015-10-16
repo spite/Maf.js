@@ -170,4 +170,44 @@
 
     Maf.scale = Maf.map;
 
+    // http://www.iquilezles.org/www/articles/functions/functions.htm
+
+    Maf.almostIdentity = function( x, m, n ) {
+        
+        if( x > m ) return x;
+
+        var a = 2 * n - m;
+        var b = 2 * m - 3 * n;
+        var t = x / m;
+
+        return ( a * t + b) * t * t + n;
+    }
+
+    Maf.impulse = function( k, x ) {
+        var h = k * x;
+        return h * Math.exp( 1 - h );
+    };
+
+    Maf.cubicPulse = function( c, w, x ) {
+        x = Math.abs( x - c );
+        if( x > w ) return 0;
+        x /= w;
+        return 1 - x * x * ( 3 - 2 * x );
+    }
+
+    Maf.expStep = function( x, k, n ) {
+        return Math.exp( -k * Math.pow( x, n ) );
+    }
+
+    Maf.parabola = function( x, k ) {
+        return Math.pow( 4 * x * ( 1 - x ), k );
+    }
+
+    Maf.powerCurve = function( x, a, b ) {
+        var k = Math.pow( a + b, a + b ) / ( Math.pow( a, a ) * Math.pow( b, b ) );
+        return k * Math.pow( x, a ) * Math.pow( 1 - x, b );
+    }
+
+    // http://iquilezles.org/www/articles/smin/smin.htm ?
+    
 }());
