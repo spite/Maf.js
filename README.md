@@ -34,8 +34,12 @@ Methods
 
 Coming up (?)
 -------
-- smoothDamp;
-- smoothDampAngle, smoothDampAngleDeg, smoothDampAngleRad;
+
+Discarded
+-------
+- smoothDamp / smoothDampAngle, smoothDampAngleDeg, smoothDampAngleRad; Can be done with basic functions and easing the time value
+- easing functions: there's libraries for that (TweenMax, tween.js)
+- perlin functions: there's ImprovedNoise.jd
 
 License
 -------
