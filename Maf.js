@@ -132,7 +132,7 @@
     Maf.mod = function(a, n) { return (a % n + n) % n; }
 
     Maf.deltaAngle = function( a, b ) {
-        var d = Maf.mod( b, 360 ) - Maf.mod( a, 360 );
+        var d = Maf.mod( b - a, 360 );
         if( d > 180 ) d = Math.abs( d - 360 );
         return d;
     };
