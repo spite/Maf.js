@@ -164,14 +164,6 @@
         return Math.pow( v, 1 / 2.2 );
     };
 
-    Maf.smoothDamp = function() {
-
-    };
-
-    Maf.smoothDampAngle = function() {
-
-    };
-
     Maf.map = function( from1, to1, from2, to2, v ) {
         return from2 + ( v - from1 ) * ( to2 - from2 ) / ( to1 - from1 );
     }
