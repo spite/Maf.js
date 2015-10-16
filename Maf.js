@@ -129,7 +129,7 @@
     // http://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
 
     //function mod(a, n) { return a - Math.floor(a/n) * n; }
-    function mod(a, n) { return (a % n + n) % n; }
+    Maf.mod = function(a, n) { return (a % n + n) % n; }
 
     Maf.deltaAngle = function( a, b ) {
         return mod( ( b - a ) + 180, 360 - 180 );
