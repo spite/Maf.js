@@ -57,7 +57,7 @@
     // http://www.shaderific.com/glsl-functions/
     // http://moutjs.com/docs/v0.11/math.html#map
     // https://code.google.com/p/kuda/source/browse/public/js/hemi/utils/mathUtils.js?r=8d581c02651077c4ac3f5fc4725323210b6b13cc
-    
+
     // Converts from degrees to radians.
     Maf.deg2Rad = function( degrees ) {
       return degrees * Math.PI / 180;
@@ -105,6 +105,8 @@
     Maf.fract = function( v ) {
         return v - Math.floor( v );
     };
+
+    Maf.frac = Maf.fract;
 
     // http://stackoverflow.com/questions/4965301/finding-if-a-number-is-a-power-of-2
 
