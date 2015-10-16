@@ -27,13 +27,13 @@ Methods
 - closestPowerOfTwo( v );
 - nextPowerOfTwo( v );
 - deltaAngle( a, b ), deltaAngleDeg( a, b ), deltaAngleRad( a, b );
+- lerpAngle, lerpAngleDeg, lerpAngleRad;
 - gammaToLinearSpace( v );
 - linearToGammaSpace( v );
 - map( from1, to1, from2, to2, v ), scale( from1, to1, from2, to2, v );
 
 Coming up (?)
 -------
-- lerpAngle, lerpAngleDeg, lerpAngleRad;
 - smoothDamp;
 - smoothDampAngle, smoothDampAngleDeg, smoothDampAngleRad;
 
