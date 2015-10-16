@@ -55,6 +55,8 @@
 
     // http://docs.unity3d.com/ScriptReference/Mathf.html
     // http://www.shaderific.com/glsl-functions/
+    // https://www.opengl.org/sdk/docs/man4/html/
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/ff471376(v=vs.85).aspx
     // http://moutjs.com/docs/v0.11/math.html#map
     // https://code.google.com/p/kuda/source/browse/public/js/hemi/utils/mathUtils.js?r=8d581c02651077c4ac3f5fc4725323210b6b13cc
 
