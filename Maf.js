@@ -145,6 +145,7 @@
 
     Maf.lerpAngle = function( a, b, t ) {
         var angle = Maf.deltaAngle( a, b );
+        return Maf.mod( a + Maf.lerp( 0, angle, t ), 360 );
     };
 
     Maf.lerpAngleDeg = Maf.lerpAngle;
