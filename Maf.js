@@ -229,4 +229,8 @@
         return{ lat: Math.asin( z / n ), lon: Math.atan2( y, x ) };
     }
 
+    Maf.randomInRange = function( min, max ) {
+        return min + Math.random() * ( max - min );
+    }
+
 }());
