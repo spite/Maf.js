@@ -31,9 +31,19 @@ Methods
 - gammaToLinearSpace( v );
 - linearToGammaSpace( v );
 - map( from1, to1, from2, to2, v ), scale( from1, to1, from2, to2, v );
+- latLonToCartesian( lat, lon );
+- cartesianToLatLon( x, y, z );
+- randomInRange( min, max );
+- norm( v, minVal, maxVal );
 
 Coming up (?)
 -------
+- almostIdentity( x, m, n )
+- impulse( k, x );
+- cubicPulse( c, w, x );
+- expStep( x, k, n );
+- parabola( x, k );
+- powerCurve( x, a, b );
 
 Discarded
 -------
