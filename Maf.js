@@ -209,5 +209,24 @@
     }
 
     // http://iquilezles.org/www/articles/smin/smin.htm ?
-    
+
+    Maf.latLonToCartesian = function( lat, long ) {
+
+        long += 180;
+        lat = Maf.clamp( lat, -85, 85 );
+        var phi = Maf.toRadians( 90 - lat );
+        var theta = Maf.toRadians( 180 - lon );
+        var x = Math.sin( phi ) * Math.cos( theta );
+        var y = Math.cos( phi );
+        var z = Math.sin( phi ) * Math.sin( theta );
+
+        return { x: x, y: y, z: z }
+
+    }
+
+    Maf.cartesianToLatLon = function( x, y, z ) {
+        var n = Math.sqrt( x * x + y * y + z * z );
+        return{ lat: Math.asin( z / n ), lon: Math.atan2( y, x ) };
+    }
+
 }());
