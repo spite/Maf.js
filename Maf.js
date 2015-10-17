@@ -233,4 +233,8 @@
         return min + Math.random() * ( max - min );
     }
 
+    Maf.norm = function( v, minVal, maxVal ) {
+        return ( v - minVal ) / ( maxVal - minVal );
+    }
+
 }());
