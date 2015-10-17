@@ -210,9 +210,9 @@
 
     // http://iquilezles.org/www/articles/smin/smin.htm ?
 
-    Maf.latLonToCartesian = function( lat, long ) {
+    Maf.latLonToCartesian = function( lat, lon ) {
 
-        long += 180;
+        lon += 180;
         lat = Maf.clamp( lat, -85, 85 );
         var phi = Maf.toRadians( 90 - lat );
         var theta = Maf.toRadians( 180 - lon );
