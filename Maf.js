@@ -237,4 +237,26 @@
         return ( v - minVal ) / ( maxVal - minVal );
     }
 
+    Maf.hash = function( n ) {
+        return Maf.fract( (1.0 + Math.cos(n)) * 415.92653);
+    }
+
+    Maf.noise2d = function( x, y ) {
+        var xhash = Maf.hash( x * 37.0 );
+        var yhash = Maf.hash( y * 57.0 );
+        return Maf.fract( xhash + yhash );
+    }
+
+    // http://iquilezles.org/www/articles/smin/smin.htm
+
+    Maf.smoothMin = function( a, b, k ) {
+        var res = Math.exp( -k*a ) + Math.exp( -k*b );
+        return - Math.log( res )/k;
+    }
+
+    Maf.smoothMax = function( a, b, k ){
+        return Math.log( Math.exp(a) + Math.exp(b) )/k;
+    }
+
+
 }());

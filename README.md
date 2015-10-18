@@ -35,6 +35,10 @@ Methods
 - cartesianToLatLon( x, y, z );
 - randomInRange( min, max );
 - norm( v, minVal, maxVal );
+- hash( n );
+- noise2d( x, y );
+- smoothMin( a, b, k );
+- smoothMax( a, b, k );
 
 Coming up (?)
 -------
