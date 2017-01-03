@@ -258,5 +258,8 @@
         return Math.log( Math.exp(a) + Math.exp(b) )/k;
     }
 
+    Maf.almost = function( a, b ) {
+        return ( Math.abs( a - b ) < .0001 );
+    }
 
 }());
