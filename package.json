@@ -1,0 +1,22 @@
+{
+  "name": "spite-maf",
+  "version": "1.1.0",
+  "description": "extended Math library and utils",
+  "main": "Maf.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spite/Maf.js.git"
+  },
+  "keywords": [
+    "math"
+  ],
+  "author": "jaume sanchez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/spite/Maf.js/issues"
+  },
+  "homepage": "https://github.com/spite/Maf.js#readme"
+}
