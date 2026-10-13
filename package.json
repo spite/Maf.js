@@ -1,6 +1,6 @@
 {
   "name": "spite-maf",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Extended Math library and utils: the functions that Math doesn't have, from GLSL, HLSL, Unity and other places",
   "type": "module",
   "main": "Maf.js",
