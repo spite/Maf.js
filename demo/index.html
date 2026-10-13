@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Maf.js</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="color-scheme" content="light dark">
+	<style>
+		:root{ --text: #24292f; --background: #ffffff; --link: #0969da; --border: #d0d7de; --muted: #57606a; --pre: #f6f8fa; --grid: #e4e8ec; --c0: #cf222e; --c1: #0969da; --c2: #1a7f37; --c3: #8250df; }
+		@media ( prefers-color-scheme: dark ) {
+			:root{ --text: #e6edf3; --background: #0d1117; --link: #58a6ff; --border: #30363d; --muted: #8b949e; --pre: #161b22; --grid: #21262d; --c0: #ff7b72; --c1: #79c0ff; --c2: #7ee787; --c3: #d2a8ff; }
+		}
+		*{ box-sizing: border-box; }
+		body{ margin: 0; padding: 32px 16px 64px; color: var( --text ); background-color: var( --background ); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; }
+		main{ max-width: 960px; margin: 0 auto; }
+		a{ color: var( --link ); }
+		h1{ font-size: 2em; margin: 0 0 16px; padding-bottom: .3em; border-bottom: 1px solid var( --border ); }
+		h2{ font-size: 1.5em; margin: 40px 0 16px; padding-bottom: .3em; border-bottom: 1px solid var( --border ); }
+		p{ margin: 0 0 16px; max-width: 800px; }
+		code{ font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 85%; padding: .2em .4em; border-radius: 6px; background-color: var( --pre ); }
+		.grid{ display: grid; grid-template-columns: 1fr; gap: 16px; }
+		.card{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; border: 1px solid var( --border ); border-radius: 6px; padding: 16px; min-width: 0; }
+		.card > div{ min-width: 0; }
+		.card canvas{ display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: 4px; background-color: var( --pre ); cursor: crosshair; }
+		.card canvas.picture{ image-rendering: pixelated; cursor: default; }
+		.card ul{ list-style: none; margin: 10px 0 0; padding: 0; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.6; }
+		.card li{ display: flex; justify-content: space-between; gap: 8px; }
+		.card li span:first-child{ flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.card li span:last-child{ color: var( --muted ); font-variant-numeric: tabular-nums; white-space: nowrap; }
+		.card dl{ margin: 0; }
+		.card dt{ font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; font-weight: 600; margin: 14px 0 2px; }
+		.card dt:first-child{ margin-top: 0; }
+		.card dd{ margin: 0; font-size: 15px; max-width: none; }
+		.card p.note{ margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var( --border ); font-size: 14px; color: var( --muted ); max-width: none; }
+		@media ( max-width: 720px ) { .card{ grid-template-columns: 1fr; gap: 16px; } }
+	</style>
+</head>
+<body>
+<main>
+
+	<h1>Maf.js</h1>
+	<p>A library for doin' maf innit. The functions that <code>Math</code> doesn't have, taken from GLSL, HLSL, Unity and other places. <a href="https://github.com/spite/Maf.js">GitHub</a></p>
+	<p>Every plot below is drawn by calling the functions that it shows, with what each of them does next to it. Move the pointer over a plot to read its values.</p>
+
+	<h2>Clamping and steps</h2>
+	<div class="grid" id="steps"></div>
+
+	<h2>Mixing and mapping</h2>
+	<div class="grid" id="mixing"></div>
+
+	<h2>Shaping</h2>
+	<div class="grid" id="shaping"></div>
+
+	<h2>Moving towards a target</h2>
+	<div class="grid" id="moving"></div>
+
+	<h2>Angles</h2>
+	<div class="grid" id="angles"></div>
+
+	<h2>Random and noise</h2>
+	<div class="grid" id="noise"></div>
+
+	<h2>The rest</h2>
+	<div class="grid" id="rest"></div>
+
+</main>
+<script type="module">
+import * as Maf from '../Maf.js';
+
+// a card with a plot of some curves: what is written is what is called
+// a card: the plot in one half, and what the functions do in the other
+function createCard( parent, docs = [], note ) {
+
+	const card = parent.appendChild( document.createElement( 'div' ) );
+	card.className = 'card';
+
+	const left = card.appendChild( document.createElement( 'div' ) );
+	const list = card.appendChild( document.createElement( 'div' ) ).appendChild( document.createElement( 'dl' ) );
+
+	for ( const [ signature, text ] of docs ) {
+
+		list.appendChild( document.createElement( 'dt' ) ).textContent = signature;
+		list.appendChild( document.createElement( 'dd' ) ).textContent = text;
+
+	}
+
+	if ( note ) {
+
+		const p = list.parentNode.appendChild( document.createElement( 'p' ) );
+		p.className = 'note';
+		p.textContent = note;
+
+	}
+
+	return left;
+
+}
+
+function plot( parent, { domain = [ 0, 1 ], range = [ 0, 1 ], curves, docs, note } ) {
+
+	const card = createCard( parent, docs, note );
+
+	const canvas = card.appendChild( document.createElement( 'canvas' ) );
+	const list = card.appendChild( document.createElement( 'ul' ) );
+	const values = [];
+
+	const fns = curves.map( function ( code, j ) {
+
+		// a curve is what is written, or a text and the function that it stands for
+		const custom = Array.isArray( code ) ? code[ 1 ] : null;
+		if ( custom ) code = code[ 0 ];
+
+		const li = list.appendChild( document.createElement( 'li' ) );
+		const label = li.appendChild( document.createElement( 'span' ) );
+		label.textContent = code;
+		label.style.color = 'var( --c' + j + ' )';
+		values.push( li.appendChild( document.createElement( 'span' ) ) );
+
+		if ( custom ) return custom;
+
+		return new Function( 'Maf', 'x', 'const { ' + Object.keys( Maf ).join( ', ' ) + ' } = Maf; return ' + code + ';' ).bind( null, Maf );
+
+	} );
+
+	let at = null;
+
+	function draw() {
+
+		const style = getComputedStyle( document.documentElement );
+		const dpr = window.devicePixelRatio || 1;
+		const w = canvas.width = Math.round( canvas.clientWidth * dpr );
+		const h = canvas.height = Math.round( canvas.clientHeight * dpr );
+		const ctx = canvas.getContext( '2d' );
+		const pad = 10 * dpr;
+		const px = x => pad + ( x - domain[ 0 ] ) / ( domain[ 1 ] - domain[ 0 ] ) * ( w - 2 * pad );
+		const py = y => h - pad - ( y - range[ 0 ] ) / ( range[ 1 ] - range[ 0 ] ) * ( h - 2 * pad );
+
+		// the lines of the whole numbers, and the axes a bit stronger
+		ctx.lineWidth = dpr;
+		ctx.strokeStyle = style.getPropertyValue( '--grid' );
+		ctx.beginPath();
+		for ( let x = Math.ceil( domain[ 0 ] ); x <= domain[ 1 ]; x += Math.max( 1, Math.round( ( domain[ 1 ] - domain[ 0 ] ) / 8 ) ) ) { ctx.moveTo( px( x ), 0 ); ctx.lineTo( px( x ), h ); }
+		for ( let y = Math.ceil( range[ 0 ] ); y <= range[ 1 ]; y += Math.max( 1, Math.round( ( range[ 1 ] - range[ 0 ] ) / 8 ) ) ) { ctx.moveTo( 0, py( y ) ); ctx.lineTo( w, py( y ) ); }
+		ctx.stroke();
+
+		fns.forEach( function ( fn, j ) {
+
+			ctx.strokeStyle = style.getPropertyValue( '--c' + j );
+			ctx.lineWidth = 2 * dpr;
+			ctx.beginPath();
+
+			let previous = null;
+
+			for ( let i = 0; i <= w; i ++ ) {
+
+				const x = domain[ 0 ] + ( i - pad ) / ( w - 2 * pad ) * ( domain[ 1 ] - domain[ 0 ] );
+				const y = fn( x );
+
+				// a jump is not a line
+				if ( previous === null || ! isFinite( y ) || Math.abs( y - previous ) > .5 * ( range[ 1 ] - range[ 0 ] ) ) ctx.moveTo( i, py( y ) );
+				else ctx.lineTo( i, py( y ) );
+
+				previous = isFinite( y ) ? y : null;
+
+			}
+
+			ctx.stroke();
+
+			const y = at === null ? null : fn( at );
+			values[ j ].textContent = y === null ? '' : 'x ' + at.toFixed( 2 ) + '  →  ' + ( Math.round( y * 1000 ) / 1000 );
+
+			if ( y !== null && isFinite( y ) ) {
+
+				ctx.fillStyle = ctx.strokeStyle;
+				ctx.beginPath();
+				ctx.arc( px( at ), py( y ), 4 * dpr, 0, Maf.TAU );
+				ctx.fill();
+
+			}
+
+		} );
+
+	}
+
+	canvas.addEventListener( 'pointermove', function ( e ) {
+
+		const rect = canvas.getBoundingClientRect();
+		at = Maf.clamp( Maf.map( 10, rect.width - 10, domain[ 0 ], domain[ 1 ], e.clientX - rect.left ), domain[ 0 ], domain[ 1 ] );
+		draw();
+
+	} );
+
+	canvas.addEventListener( 'pointerleave', function () {
+
+		at = null;
+		draw();
+
+	} );
+
+	draw();
+
+	return draw;
+
+}
+
+// a card with a picture: the value of a function of x and y at each pixel, from black to white
+function picture( parent, { code, size = 192, extent = 8, docs, note } ) {
+
+	const card = createCard( parent, docs, note );
+
+	const canvas = card.appendChild( document.createElement( 'canvas' ) );
+	canvas.className = 'picture';
+	canvas.width = size * 1.5;
+	canvas.height = size;
+
+	const fn = new Function( 'Maf', 'x', 'y', 'const { ' + Object.keys( Maf ).join( ', ' ) + ' } = Maf; return ' + code + ';' ).bind( null, Maf );
+	const ctx = canvas.getContext( '2d' );
+	const image = ctx.createImageData( canvas.width, canvas.height );
+
+	for ( let j = 0; j < canvas.height; j ++ ) {
+
+		for ( let i = 0; i < canvas.width; i ++ ) {
+
+			const v = 255 * fn( i * extent / size, j * extent / size );
+			image.data.set( [ v, v, v, 255 ], ( j * canvas.width + i ) * 4 );
+
+		}
+
+	}
+
+	ctx.putImageData( image, 0, 0 );
+
+	card.appendChild( document.createElement( 'ul' ) ).appendChild( document.createElement( 'li' ) ).appendChild( document.createElement( 'span' ) ).textContent = code;
+
+}
+
+// the same steps towards a target, taken at two frame rates
+function steps( fn, fps, from = 0 ) {
+
+	return function ( x ) {
+
+		let v = from;
+		for ( let t = 0; t < x - 1e-9; t += 1 / fps ) v = fn( v, Math.min( 1 / fps, x - t ) );
+		return v;
+
+	};
+
+}
+
+// how many of the values of a function fall in each part of the range
+function histogram( fn, from, to, samples = 40000, bins = 60 ) {
+
+	const count = new Array( bins ).fill( 0 );
+	for ( let j = 0; j < samples; j ++ ) { const b = Math.floor( Maf.map( from, to, 0, bins, fn() ) ); if ( b >= 0 && b < bins ) count[ b ] ++; }
+	const top = Math.max( ...count );
+	return x => count[ Maf.clamp( Math.floor( Maf.map( from, to, 0, bins, x ) ), 0, bins - 1 ) ] / top;
+
+}
+
+const draws = [];
+const add = ( id, ...cards ) => cards.forEach( card => draws.push( plot( document.getElementById( id ), card ) ) );
+
+add( 'steps',
+	{ domain: [ - .5, 1.5 ], range: [ - .5, 1.5 ], curves: [ 'clamp( x, .2, .8 )', 'clamp01( x )' ], docs: [
+		[ 'clamp( v, minVal, maxVal )', 'The value, not below one nor above the other.' ],
+		[ 'clamp01( v ), saturate( v )', 'The same, between 0 and 1.' ]
+	] },
+	{ curves: [ 'step( .5, x )', 'smoothStep( .2, .8, x )', 'smootherStep( .2, .8, x )' ], docs: [
+		[ 'step( edge, v )', '0 below the edge, 1 from it on.' ],
+		[ 'smoothStep( edge0, edge1, v )', 'From 0 to 1 between the two edges, starting and ending slowly. It is also smoothstep(), the name it has in GLSL.' ],
+		[ 'smootherStep( edge0, edge1, v )', 'The same, starting and ending even slower.' ]
+	] },
+	{ domain: [ - 3, 3 ], range: [ - 1.6, 1.6 ], curves: [ 'fract( x )', 'mod( x, 1.5 )', 'x % 1.5' ], docs: [
+		[ 'fract( v ), frac( v )', 'What is after the point.' ],
+		[ 'mod( a, n ), repeat( a, n )', 'The remainder of a division, that is never negative.' ]
+	], note: 'The third curve is the % of JavaScript, which goes negative with the value.' },
+	{ domain: [ - 3, 3 ], range: [ - 1.6, 1.6 ], curves: [ 'pingPong( x, 1 )', 'wrap( x, - 1, 1 )' ], docs: [
+		[ 'pingPong( v, length )', 'Goes up to length and back down, over and over.' ],
+		[ 'wrap( v, minVal, maxVal )', 'The value brought into a range that repeats, like an angle into -180 to 180.' ]
+	] },
+	{ domain: [ 0, 2 ], range: [ 0, 2 ], curves: [ 'snap( x, .5 )', 'roundTo( x, 1 )', 'x' ], docs: [
+		[ 'snap( v, step, offset )', 'The closest multiple of step. The offset moves where the multiples are.' ],
+		[ 'roundTo( v, decimals )', 'Rounded to that many decimals.' ]
+	] }
+);
+
+add( 'mixing',
+	{ domain: [ - .5, 1.5 ], range: [ - .5, 1.5 ], curves: [ 'mix( .2, .8, x )', 'mixClamped( .2, .8, x )' ], docs: [
+		[ 'mix( x, y, a ), lerp( x, y, a )', 'From x to y as a goes from 0 to 1. Outside of that it keeps going, like the ones of GLSL.' ],
+		[ 'mixClamped( x, y, a ), lerpClamped( x, y, a )', 'The same, that stops at x and at y.' ]
+	] },
+	{ domain: [ - .5, 1.5 ], range: [ - .5, 1.5 ], curves: [ 'inverseMix( .2, .8, x )', 'inverseMixClamped( .2, .8, x )' ], docs: [
+		[ 'inverseMix( a, b, v ), inverseLerp( a, b, v )', 'The opposite of mix(): where v is between a and b, 0 at a and 1 at b.' ],
+		[ 'inverseMixClamped( a, b, v )', 'The same, from 0 to 1 and no further. It is also inverseLerpClamped().' ],
+		[ 'norm( v, minVal, maxVal )', 'inverseMix() with the value first.' ]
+	] },
+	{ domain: [ - .5, 1.5 ], range: [ - .5, 1.5 ], curves: [ 'map( 0, 1, .8, .2, x )', 'mapClamped( 0, 1, .8, .2, x )' ], docs: [
+		[ 'map( from1, to1, from2, to2, v ), scale( ... )', 'A value of one range, in another. The second one can go backwards, like here.' ],
+		[ 'mapClamped( from1, to1, from2, to2, v )', 'The same, that does not leave the second range.' ]
+	] },
+	{ domain: [ - 1, 1 ], range: [ - .2, 1.2 ], curves: [ 'Math.min( x * x, .5 - x )', 'smoothMin( x * x, .5 - x, 8 )', 'smoothMin( x * x, .5 - x, 32 )' ], docs: [
+		[ 'smoothMin( a, b, k )', 'The smallest of two values, without a corner where they cross. A bigger k is closer to the real smallest.' ]
+	], note: 'Here it is used on two curves, a parabola and a line.' },
+	{ domain: [ - 1, 1 ], range: [ - .2, 1.2 ], curves: [ 'Math.max( x * x, .5 - x )', 'smoothMax( x * x, .5 - x, 8 )', 'smoothMax( x * x, .5 - x, 32 )' ], docs: [
+		[ 'smoothMax( a, b, k )', 'The biggest of two values, without a corner where they cross.' ]
+	] },
+	{ curves: [ 'gammaToLinearSpace( x )', 'sRGBToLinear( x )', 'linearToSRGB( x )' ], docs: [
+		[ 'gammaToLinearSpace( v ), linearToGammaSpace( v )', 'A color value from gamma space to linear and back, with a gamma of 2.2.' ],
+		[ 'sRGBToLinear( v ), linearToSRGB( v )', 'The same with the exact curve of sRGB.' ]
+	], note: 'The gamma of 2.2 is close to the real one, not the same: the first two curves are almost one.' }
+);
+
+add( 'shaping',
+	{ range: [ 0, 1.1 ], curves: [ 'almostIdentity( x, .5, .1 )', 'x' ], docs: [
+		[ 'almostIdentity( x, m, n )', 'The value itself, but below m it bends to end at n and never gets to zero.' ]
+	] },
+	{ range: [ 0, 1.1 ], curves: [ 'impulse( 8, x )', 'impulse( 24, x )' ], docs: [
+		[ 'impulse( k, x )', 'Grows fast to 1 and falls slowly. The peak is at 1 / k.' ]
+	] },
+	{ range: [ 0, 1.1 ], curves: [ 'cubicPulse( .5, .2, x )', 'cubicPulse( .5, .45, x )' ], docs: [
+		[ 'cubicPulse( c, w, x )', 'A bump of width w around c.' ]
+	] },
+	{ range: [ 0, 1.1 ], curves: [ 'expStep( x, 10, 1 )', 'expStep( x, 10, 3 )', 'expStep( x, 100, 6 )' ], docs: [
+		[ 'expStep( x, k, n )', 'A step that falls from 1. It is sharper with a bigger n, and k moves where it falls.' ]
+	] },
+	{ range: [ 0, 1.1 ], curves: [ 'parabola( x, 1 )', 'parabola( x, 4 )', 'parabola( x, .25 )' ], docs: [
+		[ 'parabola( x, k )', '0 at both ends and 1 in the middle, sharper with a bigger k.' ]
+	] },
+	{ range: [ 0, 1.1 ], curves: [ 'powerCurve( x, 1, 3 )', 'powerCurve( x, 3, 1 )', 'powerCurve( x, 2, 2 )' ], docs: [
+		[ 'powerCurve( x, a, b )', '0 at both ends and 1 at the top, which is to the left with a bigger b and to the right with a bigger a.' ]
+	] },
+	{ curves: [ 'bias( x, .2 )', 'bias( x, .5 )', 'bias( x, .8 )' ], docs: [
+		[ 'bias( x, b )', 'Pushes the values of 0 to 1 towards 0 with b below .5, and towards 1 above. With .5 it leaves them as they are.' ]
+	] },
+	{ curves: [ 'gain( x, .2 )', 'gain( x, .8 )' ], docs: [
+		[ 'gain( x, g )', 'Pushes the values of 0 to 1 towards the middle with g below .5, and away from it above.' ]
+	] },
+	{ range: [ - .4, 1.1 ], curves: [ 'sinc( x, 4 )', 'sinc( x, 12 )' ], docs: [
+		[ 'sinc( x, k )', 'A wave that fades, with its top at 1 / k.' ]
+	] }
+);
+
+add( 'moving',
+	{ domain: [ 0, 2 ], range: [ 0, 1.1 ], curves: [ [ 'damp( v, 1, 3, 1 / 60 )', steps( ( v, dt ) => Maf.damp( v, 1, 3, dt ), 60 ) ], [ 'damp( v, 1, 3, 1 / 5 )', steps( ( v, dt ) => Maf.damp( v, 1, 3, dt ), 5 ) ] ], docs: [
+		[ 'damp( current, target, lambda, dt )', 'Closer to the target on every call, fast at first and slower as it gets there. dt is the time since the last call, in seconds. lambda is how fast: with 1 it covers 63% of the way in a second.' ]
+	], note: 'Called on every frame for x seconds, at 60 frames per second and at 5. The two curves are the same one: it does not depend on the frame rate.' },
+	{ domain: [ 0, 2 ], range: [ 0, 1.1 ], curves: [ [ 'mix( v, 1, .05 ) at 60 fps', steps( v => Maf.mix( v, 1, .05 ), 60 ) ], [ 'mix( v, 1, .05 ) at 5 fps', steps( v => Maf.mix( v, 1, .05 ), 5 ) ] ], docs: [
+		[ 'v = mix( v, target, .05 )', 'What damp() is for. The usual way of easing towards a target takes a part of what is left on every frame, so how fast it goes depends on how fast the frames come.' ]
+	] },
+	{ domain: [ 0, 2 ], range: [ 0, 1.1 ], curves: [ [ 'moveTowards( v, 1, .8 * dt )', steps( ( v, dt ) => Maf.moveTowards( v, 1, .8 * dt ), 60 ) ] ], docs: [
+		[ 'moveTowards( current, target, maxDelta )', 'Towards the target by maxDelta at most, without going past it. With a maxDelta of a speed by the time of the frame, it moves at that speed and stops at the target.' ]
+	] }
+);
+
+add( 'angles',
+	{ domain: [ 0, 360 ], range: [ 0, 7 ], curves: [ 'toRadians( x )', 'toDegrees( x / 60 ) / 60' ], docs: [
+		[ 'toRadians( degrees ), deg2Rad( degrees )', 'Degrees to radians.' ],
+		[ 'toDegrees( radians ), rad2Deg( radians )', 'Radians to degrees.' ]
+	], note: 'Everything that takes angles takes degrees, and has another with Rad in its name for radians.' },
+	{ domain: [ 0, 720 ], range: [ - 200, 200 ], curves: [ 'deltaAngle( 0, x )' ], docs: [
+		[ 'deltaAngle( a, b )', 'The shortest way from one angle to another, with its sign: from -180 to 180. It is also deltaAngleDeg(), and deltaAngleRad() in radians.' ]
+	] },
+	{ range: [ - 20, 380 ], curves: [ 'lerpAngle( 350, 20, x )', 'lerpAngle( 90, 270, x )' ], docs: [
+		[ 'lerpAngle( a, b, t )', 'From a to b the shortest way, as t goes from 0 to 1. It is also lerpAngleDeg(), and lerpAngleRad() in radians.' ]
+	], note: 'From 350 to 20 is 30 degrees through zero, not 330 the other way. The jump in the plot is the angle passing 360.' },
+	{ domain: [ 0, 2 ], range: [ - 20, 380 ], curves: [ [ 'dampAngle( v, 20, 3, dt ) from 350', steps( ( v, dt ) => Maf.dampAngle( v, 20, 3, dt ), 60, 350 ) ], [ 'moveTowardsAngle( v, 20, 30 * dt ) from 350', steps( ( v, dt ) => Maf.moveTowardsAngle( v, 20, 30 * dt ), 60, 350 ) ] ], docs: [
+		[ 'dampAngle( current, target, lambda, dt )', 'damp() for angles, the shortest way. In radians it is dampAngleRad().' ],
+		[ 'moveTowardsAngle( current, target, maxDelta )', 'moveTowards() for angles. In radians it is moveTowardsAngleRad().' ]
+	] }
+);
+
+const seeded = Maf.seededRandom( 2026 );
+const sequence = Array.from( { length: 41 }, seeded );
+
+add( 'noise',
+	{ domain: [ 0, 40 ], curves: [ [ 'seededRandom( 2026 )', x => sequence[ Math.floor( x ) ] ] ], docs: [
+		[ 'seededRandom( seed )', 'Returns a function like Math.random, that gives the same numbers every time for the same seed. The seed is a number or a string.' ]
+	], note: 'This plot is the same every time the page loads. All the random functions take the function that gives the numbers as their last parameter, Math.random by default.' },
+	{ domain: [ - 4, 4 ], range: [ 0, 1.1 ], curves: [ [ 'randomGaussian( 0, 1 )', histogram( () => Maf.randomGaussian( 0, 1 ), - 4, 4 ) ], [ 'randomInRange( - 2, 2 )', histogram( () => Maf.randomInRange( - 2, 2 ), - 4, 4 ) ] ], docs: [
+		[ 'randomGaussian( mean, deviation )', 'Around the mean, closer to it more often.' ],
+		[ 'randomInRange( min, max )', 'Between the two, any of them as likely.' ],
+		[ 'randomInt( min, max )', 'A whole number, that can be any of the two.' ],
+		[ 'randomSign(), randomItem( array ), shuffle( array ), randomOnSphere()', '1 or -1, one of the items, the array in another order, and a point of a sphere.' ]
+	], note: 'How often each value comes out, of 40000.' },
+	{ domain: [ 0, 40 ], curves: [ 'hash( Math.floor( x ) )' ], docs: [
+		[ 'hash( ...values )', 'A number from 0 to 1 that looks random, and is the same for the same numbers. It takes as many as you give it.' ],
+		[ 'hashInt( ...values )', 'The same, as a whole number of 32 bits.' ]
+	] }
+);
+
+const pictures = document.getElementById( 'noise' );
+picture( pictures, { code: 'noise2d( Math.floor( x * 4 ), Math.floor( y * 4 ) )', docs: [
+	[ 'noise2d( x, y )', 'hash( x, y ). There is no pattern between one value and the next, in any direction.' ]
+] } );
+
+add( 'noise',
+	{ domain: [ 0, 8 ], range: [ - 1, 1 ], curves: [ 'valueNoise( x )', 'perlinNoise( x, .5 )', 'fbm( x, .5 )' ], docs: [
+		[ 'valueNoise( x, y, z )', 'Noise that changes smoothly, from 0 to 1.' ],
+		[ 'perlinNoise( x, y, z )', 'The noise of Ken Perlin, from -1 to 1. It is 0 at the whole numbers.' ],
+		[ 'fbm( x, y, z, options )', 'Several noises added, each one smaller and finer than the one before, from -1 to 1.' ]
+	], note: 'y and z are optional in the three of them. They are below as pictures.' }
+);
+
+picture( pictures, { code: 'valueNoise( x, y )', docs: [
+	[ 'valueNoise( x, y )', 'The hash of the whole numbers, and a smooth way from one to the next. It shows the grid that it is made on.' ]
+] } );
+picture( pictures, { code: '.5 + .5 * perlinNoise( x, y )', docs: [
+	[ 'perlinNoise( x, y )', 'A direction at each whole number instead of a value, which hides the grid better.' ]
+] } );
+picture( pictures, { code: '.5 + .5 * fbm( x, y )', docs: [
+	[ 'fbm( x, y, 0, options )', 'The options are octaves, how many noises are added (5), lacunarity, how much finer each one is (2), gain, how much smaller (0.5), and noise, the function that is added (perlinNoise).' ]
+] } );
+
+add( 'rest',
+	{ domain: [ 1, 70 ], range: [ 0, 140 ], curves: [ 'nextPowerOfTwo( x )', 'closestPowerOfTwo( x )', 'isPowerOfTwo( Math.round( x ) ) ? 130 : 0' ], docs: [
+		[ 'nextPowerOfTwo( v )', 'The power of two that is v, or the first after it.' ],
+		[ 'closestPowerOfTwo( v )', 'The one that is closest, before or after.' ],
+		[ 'isPowerOfTwo( v )', 'If it is one.' ]
+	] },
+	{ domain: [ - 90, 90 ], range: [ - 1.1, 1.1 ], curves: [ 'latLonToCartesian( x, 0 ).y', 'latLonToCartesian( 0, x ).z', 'cartesianToLatLon( 1, Math.tan( toRadians( x ) ), 0 ).lat / 90' ], docs: [
+		[ 'latLonToCartesian( lat, lon )', 'Latitude and longitude in degrees, to the { x, y, z } of a point of a sphere of radius 1, with y up.' ],
+		[ 'cartesianToLatLon( x, y, z )', 'The opposite: a point at any distance, to { lat, lon } in degrees.' ],
+		[ 'almost( a, b, epsilon )', 'Not in the plot: if two values are closer than epsilon, 0.0001 by default.' ]
+	] }
+);
+
+window.addEventListener( 'resize', () => draws.forEach( draw => draw() ) );
+window.matchMedia( '( prefers-color-scheme: dark )' ).addEventListener( 'change', () => draws.forEach( draw => draw() ) );
+</script>
+</body>
+</html>

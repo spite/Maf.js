@@ -1,22 +1,46 @@
 {
   "name": "spite-maf",
   "version": "1.1.0",
-  "description": "extended Math library and utils",
+  "description": "Extended Math library and utils: the functions that Math doesn't have, from GLSL, HLSL, Unity and other places",
+  "type": "module",
   "main": "Maf.js",
+  "module": "Maf.js",
+  "types": "Maf.d.ts",
+  "exports": {
+    ".": {
+      "types": "./Maf.d.ts",
+      "default": "./Maf.js"
+    }
+  },
+  "files": [
+    "Maf.js",
+    "Maf.d.ts"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test test/maf.test.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/spite/Maf.js.git"
   },
   "keywords": [
-    "math"
+    "math",
+    "glsl",
+    "clamp",
+    "lerp",
+    "smoothstep",
+    "mix",
+    "damp",
+    "noise",
+    "perlin",
+    "random",
+    "seeded",
+    "utils"
   ],
-  "author": "jaume sanchez",
+  "author": "Jaume Sanchez <the.spite@gmail.com> (https://www.clicktorelease.com)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/spite/Maf.js/issues"
   },
-  "homepage": "https://github.com/spite/Maf.js#readme"
+  "homepage": "https://spite.github.io/Maf.js/"
 }
