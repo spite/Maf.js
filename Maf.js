@@ -36,10 +36,10 @@ function smootherStep(edge0, edge1, v) {
 const smootherstep = smootherStep;
 
 // http://docs.unity3d.com/ScriptReference/Mathf.html
-// http://www.shaderific.com/glsl-functions/
+// https://web.archive.org/web/20161221231840/http://www.shaderific.com/glsl-functions/
 // https://www.opengl.org/sdk/docs/man4/html/
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ff471376(v=vs.85).aspx
-// http://moutjs.com/docs/v0.11/math.html#map
+// https://github.com/mout/mout/blob/master/doc/math.md#map
 // https://code.google.com/p/kuda/source/browse/public/js/hemi/utils/mathUtils.js?r=8d581c02651077c4ac3f5fc4725323210b6b13cc
 
 // Converts from degrees to radians.
@@ -108,7 +108,7 @@ function isPowerOfTwo(v) {
   return Number.isInteger(v) && v > 0 && Number.isInteger(Math.log2(v));
 }
 
-// https://bocoup.com/weblog/find-the-closest-power-of-2-with-javascript
+// https://web.archive.org/web/20150510091207/http://bocoup.com/weblog/find-the-closest-power-of-2-with-javascript/
 
 function closestPowerOfTwo(v) {
   if (!(v > 0)) return 0;
@@ -246,7 +246,7 @@ function mapClamped(from1, to1, from2, to2, v) {
   );
 }
 
-// http://www.iquilezles.org/www/articles/functions/functions.htm
+// https://iquilezles.org/articles/functions/
 
 function almostIdentity(x, m, n) {
   if (x > m) return x;
@@ -301,7 +301,7 @@ function gain(x, g) {
   return bias(x * 2 - 1, 1 - g) / 2 + 0.5;
 }
 
-// http://iquilezles.org/www/articles/smin/smin.htm ?
+// https://iquilezles.org/articles/smin/ ?
 
 // Degrees to a point on the unit sphere, with y up.
 function latLonToCartesian(lat, lon) {
@@ -484,7 +484,7 @@ function fbm(x, y = 0, z = 0, options = {}) {
   return sum / total;
 }
 
-// http://iquilezles.org/www/articles/smin/smin.htm
+// https://iquilezles.org/articles/smin/
 
 // The biggest is taken out before the exponentials, so they don't overflow.
 function smoothMax(a, b, k) {
